@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"blockchain/internal/core"
+	"kukharchuk-blockchain/internal/core"
 )
 
 func main() {
