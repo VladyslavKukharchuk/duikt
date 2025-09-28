@@ -1,9 +1,8 @@
 package core
 
 import (
+	"strings"
 	"time"
-
-	"blockchain/internal"
 )
 
 type Blockchain struct {
@@ -27,8 +26,8 @@ func (bc *Blockchain) createGenesisBlock() {
 		Index:        0,
 		Timestamp:    time.Now().Unix(),
 		Transactions: []Transaction{},
-		Proof:        100,
-		PreviousHash: "0",
+		Proof:        11122000,
+		PreviousHash: "kukharchuk",
 	}
 
 	genesisBlock.Hash = calculateHash(genesisBlock)
@@ -61,7 +60,7 @@ func (bc *Blockchain) AddTransaction(sender, recipient string, amount float64) s
 
 	bc.Transactions = append(bc.Transactions, tx)
 
-	return internal.generateTransactionID(tx)
+	return generateTransactionID(tx)
 }
 
 func (bc *Blockchain) ProofOfWork() (int, int64) {
@@ -87,5 +86,7 @@ func validProof(lastBlock Block, proof int, transactions []Transaction, candidat
 
 	guessHash := calculateHash(tempBlock)
 
-	return guessHash[:4] == "0000"
+	monthSuffix := "12"
+
+	return guessHash[:4] == "0000" && strings.HasSuffix(guessHash, monthSuffix)
 }
