@@ -8,6 +8,6 @@ This project is for **learning purposes**—to show the basic principles of bloc
 ### Run the Project
 
 ```bash
-go run ./cmd/blockchain
+go run ./cmd/server
 ```
 
