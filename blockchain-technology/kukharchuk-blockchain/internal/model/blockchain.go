@@ -1,4 +1,4 @@
-package core
+package model
 
 import (
 	"strings"
@@ -6,14 +6,14 @@ import (
 )
 
 type Blockchain struct {
-	Chain        []Block
-	Transactions []Transaction
+	Chain   []Block
+	Mempool []Transaction
 }
 
 func NewBlockchain() *Blockchain {
 	bc := &Blockchain{
-		Chain:        []Block{},
-		Transactions: []Transaction{},
+		Chain:   []Block{},
+		Mempool: []Transaction{},
 	}
 
 	bc.createGenesisBlock()
@@ -39,7 +39,7 @@ func (bc *Blockchain) AddBlock(proof int, timestamp int64, previousHash string) 
 	newBlock := Block{
 		Index:        len(bc.Chain),
 		Timestamp:    timestamp,
-		Transactions: bc.Transactions,
+		Transactions: bc.Mempool,
 		Proof:        proof,
 		PreviousHash: previousHash,
 	}
@@ -48,19 +48,13 @@ func (bc *Blockchain) AddBlock(proof int, timestamp int64, previousHash string) 
 
 	bc.Chain = append(bc.Chain, newBlock)
 
-	bc.Transactions = []Transaction{}
+	bc.Mempool = []Transaction{}
 }
 
-func (bc *Blockchain) AddTransaction(sender, recipient string, amount float64) string {
-	tx := Transaction{
-		Sender:    sender,
-		Recipient: recipient,
-		Amount:    amount,
-	}
+func (bc *Blockchain) AddTransaction(transaction Transaction) string {
+	bc.Mempool = append(bc.Mempool, transaction)
 
-	bc.Transactions = append(bc.Transactions, tx)
-
-	return generateTransactionID(tx)
+	return generateTransactionID(transaction)
 }
 
 func (bc *Blockchain) ProofOfWork() (int, int64) {
@@ -68,7 +62,7 @@ func (bc *Blockchain) ProofOfWork() (int, int64) {
 	candidateTimestamp := time.Now().Unix()
 	proof := 0
 
-	for !validProof(lastBlock, proof, bc.Transactions, candidateTimestamp) {
+	for !validProof(lastBlock, proof, bc.Mempool, candidateTimestamp) {
 		proof++
 	}
 
