@@ -10,7 +10,8 @@ import (
 )
 
 type AccountService interface {
-	Balance(xehAddress string) (*big.Int, error)
+	Balance(hexAddress string) (*big.Int, error)
+	SendTransaction(hexPrivateKey string, recipient string, amount *big.Int) (string, error)
 }
 
 type AccountController struct {
@@ -19,6 +20,12 @@ type AccountController struct {
 
 func NewAccountController(service AccountService) *AccountController {
 	return &AccountController{service: service}
+}
+
+type BalanceResponse struct {
+	Address string `json:"address"`
+	Wei     string `json:"wei"`
+	Eth     string `json:"eth"`
 }
 
 func (c *AccountController) Balance(ctx *gin.Context) {
@@ -34,11 +41,50 @@ func (c *AccountController) Balance(ctx *gin.Context) {
 		return
 	}
 
-	floatBalance := new(big.Float).Quo(
+	eth := new(big.Float).Quo(
 		new(big.Float).SetInt(balance),
 		big.NewFloat(1e18),
 	)
 
-	res := newResponse("success", floatBalance)
+	response := BalanceResponse{
+		Address: address,
+		Wei:     balance.String(),
+		Eth:     eth.Text('f', 18),
+	}
+
+	res := newResponse("success", response)
+	ctx.JSON(http.StatusOK, res)
+}
+
+type SendTransactionRequest struct {
+	SenderPrivateKey string `json:"sender_private_key"`
+	Recipient        string `json:"recipient"`
+	Amount           string `json:"amount"`
+}
+
+type SendTransactionResponse struct {
+	TransactionHex string `json:"transaction_hex"`
+}
+
+func (c *AccountController) SendTransaction(ctx *gin.Context) {
+	var transaction SendTransactionRequest
+	if err := ctx.ShouldBindJSON(&transaction); err != nil {
+		ctx.JSON(http.StatusBadRequest, newResponse("error", "Invalid transaction data"))
+		return
+	}
+
+	amount := new(big.Int)
+	if _, ok := amount.SetString(transaction.Amount, 10); !ok {
+		ctx.JSON(http.StatusBadRequest, newResponse("error", "invalid amount value"))
+		return
+	}
+
+	transactionHex, err := c.service.SendTransaction(transaction.SenderPrivateKey, transaction.Recipient, amount)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, newResponse("error", fmt.Sprintf("failed to send transaction: %v", err)))
+		return
+	}
+
+	res := newResponse("success", SendTransactionResponse{transactionHex})
 	ctx.JSON(http.StatusOK, res)
 }
