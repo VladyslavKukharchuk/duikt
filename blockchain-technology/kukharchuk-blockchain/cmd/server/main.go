@@ -28,6 +28,7 @@ func main() {
 	r.GET("/mine", blockchainController.MineBlock)
 	r.GET("/account/:address/balance", accountController.Balance)
 	r.POST("/account/transaction", accountController.SendTransaction)
+	r.POST("/account", accountController.AddAccount)
 
 	r.Run(":8088")
 }

@@ -12,6 +12,7 @@ import (
 type AccountService interface {
 	Balance(hexAddress string) (*big.Int, error)
 	SendTransaction(hexPrivateKey string, recipient string, amount *big.Int) (string, error)
+	AddAccount() (string, string, error)
 }
 
 type AccountController struct {
@@ -86,5 +87,24 @@ func (c *AccountController) SendTransaction(ctx *gin.Context) {
 	}
 
 	res := newResponse("success", SendTransactionResponse{transactionHex})
+	ctx.JSON(http.StatusOK, res)
+}
+
+type AddAccountResponse struct {
+	Address       string `json:"address"`
+	PrivateKeyHex string `json:"private_key_hex"`
+}
+
+func (c *AccountController) AddAccount(ctx *gin.Context) {
+	address, privateKeyHex, err := c.service.AddAccount()
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, newResponse("error", fmt.Sprintf("failed to add account: %v", err)))
+		return
+	}
+
+	res := newResponse("success", AddAccountResponse{
+		Address:       address,
+		PrivateKeyHex: privateKeyHex,
+	})
 	ctx.JSON(http.StatusOK, res)
 }

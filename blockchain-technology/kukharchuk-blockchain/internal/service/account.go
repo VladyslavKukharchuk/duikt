@@ -2,10 +2,12 @@ package service
 
 import (
 	"context"
+	"crypto/ecdsa"
 	"fmt"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 )
@@ -90,4 +92,24 @@ func (s *AccountService) SendTransaction(hexPrivateKey string, recipient string,
 	}
 
 	return signedTransaction.Hash().Hex(), nil
+}
+
+func (s *AccountService) AddAccount() (string, string, error) {
+	privateKey, err := crypto.GenerateKey()
+	if err != nil {
+		return "", "", fmt.Errorf("generate key: %w", err)
+	}
+
+	privateKeyBites := crypto.FromECDSA(privateKey)
+	privateKeyHex := hexutil.Encode(privateKeyBites)[2:]
+
+	publicKey := privateKey.Public()
+	publicKeyECDSA, ok := publicKey.(*ecdsa.PublicKey)
+	if !ok {
+		return "", "", fmt.Errorf("error casting public key to ECDSA")
+	}
+
+	address := crypto.PubkeyToAddress(*publicKeyECDSA)
+
+	return address.Hex(), privateKeyHex, nil
 }
