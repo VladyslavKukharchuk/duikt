@@ -5,6 +5,22 @@ This project is for **learning purposes**—to show the basic principles of bloc
 
 ---
 
+### Ethereum
+Install [Geth(Go-Ethereum)](https://geth.ethereum.org/downloads)
+```bash
+brew install ethereum
+```
+
+Create new account by Geth
+```bash
+geth account new
+```
+
+```bash
+geth account list
+```
+
+
 ### Run the Project
 
 ```bash
