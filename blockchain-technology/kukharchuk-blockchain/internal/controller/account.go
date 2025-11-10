@@ -7,12 +7,15 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/gin-gonic/gin"
+
+	"kukharchuk-blockchain/internal/model"
 )
 
 type AccountService interface {
 	Balance(hexAddress string) (*big.Int, error)
 	SendTransaction(hexPrivateKey string, recipient string, amount *big.Int) (string, error)
 	AddAccount() (string, string, error)
+	GetTransaction(hash string) (*model.TransactionData, error)
 }
 
 type AccountController struct {
@@ -107,4 +110,40 @@ func (c *AccountController) AddAccount(ctx *gin.Context) {
 		PrivateKeyHex: privateKeyHex,
 	})
 	ctx.JSON(http.StatusOK, res)
+}
+
+type GetTransactionResponse struct {
+	Hash        string `json:"hash"`
+	From        string `json:"from"`
+	To          string `json:"to"`
+	ValueETH    string `json:"value_eth"`
+	GasUsed     uint64 `json:"gas_used"`
+	BlockNumber uint64 `json:"block_number"`
+	Status      string `json:"status"`
+	Input       string `json:"input"`
+}
+
+func toGetTransactionResponse(m *model.TransactionData) GetTransactionResponse {
+	return GetTransactionResponse{
+		Hash:        m.Hash,
+		From:        m.From,
+		To:          m.To,
+		ValueETH:    m.ValueETH,
+		GasUsed:     m.GasUsed,
+		BlockNumber: m.BlockNumber,
+		Status:      m.Status,
+		Input:       m.Input,
+	}
+}
+
+func (c *AccountController) GetTransaction(ctx *gin.Context) {
+	hash := ctx.Param("hash")
+
+	transaction, err := c.service.GetTransaction(hash)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, newResponse("error", fmt.Errorf("failed to get transaction by hash: %s, error: %v", hash, err)))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, newResponse("success", toGetTransactionResponse(transaction)))
 }

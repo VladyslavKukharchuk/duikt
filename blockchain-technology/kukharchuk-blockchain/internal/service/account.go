@@ -10,6 +10,8 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
+
+	"kukharchuk-blockchain/internal/model"
 )
 
 type Client interface {
@@ -18,6 +20,8 @@ type Client interface {
 	SuggestGasPrice(ctx context.Context) (*big.Int, error)
 	NetworkID(ctx context.Context) (*big.Int, error)
 	SendTransaction(ctx context.Context, tx *types.Transaction) error
+	TransactionByHash(ctx context.Context, hash common.Hash) (tx *types.Transaction, isPending bool, err error)
+	TransactionReceipt(ctx context.Context, txHash common.Hash) (*types.Receipt, error)
 }
 
 type AccountService struct {
@@ -112,4 +116,55 @@ func (s *AccountService) AddAccount() (string, string, error) {
 	address := crypto.PubkeyToAddress(*publicKeyECDSA)
 
 	return address.Hex(), privateKeyHex, nil
+}
+
+func (s *AccountService) GetTransaction(hash string) (*model.TransactionData, error) {
+	var (
+		ctx    = context.Background()
+		txHash = common.HexToHash(hash)
+	)
+
+	transaction, isPending, err := s.client.TransactionByHash(ctx, txHash)
+	if err != nil {
+		return nil, fmt.Errorf("get transaction from ethereum: %v", err)
+	}
+
+	if isPending {
+		return &model.TransactionData{
+			Hash:   hash,
+			Status: "pending",
+		}, nil
+	}
+
+	receipt, err := s.client.TransactionReceipt(ctx, txHash)
+	if err != nil {
+		return nil, fmt.Errorf("get receipt by transaction hash: %v", err)
+	}
+
+	signer := types.NewEIP155Signer(transaction.ChainId())
+	from, err := types.Sender(signer, transaction)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get sender: %v", err)
+	}
+
+	valueETH := new(big.Float).Quo(
+		new(big.Float).SetInt(transaction.Value()),
+		big.NewFloat(1e18),
+	).String()
+
+	status := "failed"
+	if receipt.Status == 1 {
+		status = "success"
+	}
+
+	return &model.TransactionData{
+		Hash:        hash,
+		From:        from.Hex(),
+		To:          transaction.To().Hex(),
+		ValueETH:    valueETH,
+		GasUsed:     receipt.GasUsed,
+		BlockNumber: receipt.BlockNumber.Uint64(),
+		Status:      status,
+		Input:       fmt.Sprintf("0x%x", transaction.Data()),
+	}, nil
 }
