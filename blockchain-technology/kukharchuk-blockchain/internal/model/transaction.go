@@ -18,3 +18,14 @@ func generateTransactionID(tx Transaction) string {
 
 	return hex.EncodeToString(hash[:])
 }
+
+type TransactionData struct {
+	Hash        string
+	From        string
+	To          string
+	ValueETH    string
+	GasUsed     uint64
+	BlockNumber uint64
+	Status      string
+	Input       string
+}
