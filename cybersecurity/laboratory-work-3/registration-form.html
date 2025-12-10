@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Lab Work №3 – Input Data Validation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+        }
+        form {
+            max-width: 400px;
+        }
+        label {
+            display: block;
+            margin-top: 15px;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+        }
+        .error {
+            color: red;
+            font-size: 0.9em;
+        }
+        button {
+            margin-top: 20px;
+            padding: 10px 15px;
+        }
+    </style>
+</head>
+<body>
+<h2>Registration Form</h2>
+
+<form id="registrationForm" novalidate>
+    <label>
+        Username:
+        <input type="text" id="username">
+        <span class="error" id="usernameError"></span>
+    </label>
+
+    <label>
+        Name:
+        <input type="text" id="name">
+        <span class="error" id="nameError"></span>
+    </label>
+
+    <label>
+        Password:
+        <input type="password" id="password">
+        <span class="error" id="passwordError"></span>
+    </label>
+
+    <label>
+        Email:
+        <input type="email" id="email">
+        <span class="error" id="emailError"></span>
+    </label>
+
+    <label>
+        Date of Birth:
+        <input type="date" id="birthdate">
+        <span class="error" id="birthdateError"></span>
+    </label>
+
+    <button type="submit">Register</button>
+</form>
+
+<script>
+    const form = document.getElementById('registrationForm');
+
+    form.addEventListener('submit', function(event) {
+        event.preventDefault();
+        let isValid = true;
+
+        const username = document.getElementById('username').value.trim();
+        const usernameError = document.getElementById('usernameError');
+        if (username.length < 5) {
+            usernameError.textContent = "Username must be at least 5 characters long";
+            isValid = false;
+        } else {
+            usernameError.textContent = "";
+        }
+
+        const name = document.getElementById('name').value.trim();
+        const nameError = document.getElementById('nameError');
+        if (!/^[A-Za-z]+$/.test(name)) {
+            nameError.textContent = "Name must contain only letters";
+            isValid = false;
+        } else {
+            nameError.textContent = "";
+        }
+
+        const password = document.getElementById('password').value;
+        const passwordError = document.getElementById('passwordError');
+        if (!/(?=.*[A-Z])(?=.*\d).{8,}/.test(password)) {
+            passwordError.textContent = "Password must contain at least one uppercase letter, one number, and be at least 8 characters long";
+            isValid = false;
+        } else {
+            passwordError.textContent = "";
+        }
+
+        const email = document.getElementById('email').value.trim();
+        const emailError = document.getElementById('emailError');
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            emailError.textContent = "Please enter a valid email address";
+            isValid = false;
+        } else {
+            emailError.textContent = "";
+        }
+
+        const birthdate = document.getElementById('birthdate').value;
+        const birthdateError = document.getElementById('birthdateError');
+        if (!birthdate) {
+            birthdateError.textContent = "Please enter your date of birth";
+            isValid = false;
+        } else if (new Date(birthdate) > new Date()) {
+            birthdateError.textContent = "Date of birth cannot be in the future";
+            isValid = false;
+        } else {
+            birthdateError.textContent = "";
+        }
+
+        if (isValid) {
+            alert("Registration successful!");
+            form.reset();
+        }
+    });
+</script>
+</body>
+</html>
