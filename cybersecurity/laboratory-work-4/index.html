@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Token-Based Authentication</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        form { max-width: 400px; }
+        label { display: block; margin-top: 15px; }
+        input { width: 100%; padding: 8px; margin-top: 5px; }
+        .error { color: red; font-size: 0.9em; }
+        button { margin-top: 20px; padding: 10px 15px; }
+    </style>
+</head>
+<body>
+    <h2>User Login</h2>
+
+    <form id="loginForm">
+        <label>
+            Username:
+            <input type="text" id="username">
+        </label>
+
+        <label>
+            Password:
+            <input type="password" id="password">
+        </label>
+
+        <button type="submit">Login</button>
+    </form>
+
+    <h3 id="message"></h3>
+
+    <script>
+        const form = document.getElementById('loginForm');
+        const message = document.getElementById('message');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            const res = await fetch('http://localhost:8080/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+
+            const data = await res.json();
+            if (res.ok) {
+                message.style.color = 'green';
+                message.textContent = "Login successful! Your token: " + data.token;
+
+                localStorage.setItem('token', data.token);
+            } else {
+                message.style.color = 'red';
+                message.textContent = data.error;
+            }
+        });
+    </script>
+</body>
+</html>
