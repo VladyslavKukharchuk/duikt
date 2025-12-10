@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Token-Based Authentication</title>
+
     <style>
         body { font-family: Arial, sans-serif; margin: 40px; }
         form { max-width: 400px; }
@@ -10,6 +11,7 @@
         input { width: 100%; padding: 8px; margin-top: 5px; }
         .error { color: red; font-size: 0.9em; }
         button { margin-top: 20px; padding: 10px 15px; }
+        #protectedBtn { margin-top: 10px; }
     </style>
 </head>
 <body>
@@ -29,18 +31,21 @@
         <button type="submit">Login</button>
     </form>
 
+    <button id="protectedBtn">Access Protected Resource</button>
+
     <h3 id="message"></h3>
 
     <script>
         const form = document.getElementById('loginForm');
         const message = document.getElementById('message');
+        const protectedBtn = document.getElementById('protectedBtn');
 
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
 
-            const res = await fetch('http://localhost:8080/login', {
+            const res = await fetch('/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username, password })
@@ -50,12 +55,34 @@
             if (res.ok) {
                 message.style.color = 'green';
                 message.textContent = "Login successful! Your token: " + data.token;
-
                 localStorage.setItem('token', data.token);
             } else {
                 message.style.color = 'red';
                 message.textContent = data.error;
             }
+        });
+
+        protectedBtn.addEventListener('click', async () => {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                message.style.color = 'red';
+                message.textContent = "No token found. Please login first.";
+
+                return;
+            }
+
+            const res = await fetch('/protected', {
+                method: 'GET',
+                headers: { 'Authorization': token }
+            });
+
+            const text = await res.text();
+            if (res.ok) {
+                message.style.color = 'green';
+            } else {
+                message.style.color = 'red';
+            }
+            message.textContent = text;
         });
     </script>
 </body>

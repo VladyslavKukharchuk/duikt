@@ -1,9 +1,11 @@
 # Laboratory work 4 – Token-Based Authentication
 
 Project Structure
+```text
 laboratory-work-4/
 ├── index.html      # User login form
 └── main.go         # Go server with JWT authentication
+```
 
 ### Requirements
 
@@ -23,14 +25,13 @@ laboratory-work-4/
     ```
 4. Open your browser and navigate to:
    http://localhost:8080/index.html
-5. Enter the username and password:
+
+## How to Test
+
+1. Enter the username and password:
    ```text
     Username: user
     Password: 12345
    ```
-6. After a successful login, you will receive a JWT, which can be used to access the protected route.
-
-## Notes
-
-- The token is valid for 2 minutes only.
-- Failed login attempts and invalid token usage are logged in the server console.
+2. After a successful login, you will receive a JWT.
+3. Now you can use `Access Protected Resource` button to test your token.
